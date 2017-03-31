@@ -1,0 +1,63 @@
+
+<?php
+	if(!isset($_GET['q'])) exit();
+	$maxNewsStories = 10;
+
+	include($_SERVER["DOCUMENT_ROOT"]."/db.inc.php");
+	$nSource = $_GET["q"];
+
+	$tDate = date("YMd");
+	
+	//check to see if this date and this news source is already indexed
+	$get = "SELECT * FROM rss WHERE tDate = '$tDate' and nSource = '$nSource' LIMIT 1 ";
+	$result = $mysqli->query($get);
+	if($row = $result->fetch_row()){
+		//do nothing
+		
+	} else {
+
+		if(stristr($nSource,"Google"))  			$xml = "http://news.google.com/news?ned=us&topic=h&output=rss";
+		elseif (stristr($nSource,"NBC")) 			$xml = "http://rss.msnbc.msn.com/id/3032091/device/rss/rss.xml";
+		elseif (stristr($nSource,"cbcts"))			$xml = "http://www.cbc.ca/cmlink/rss-topstories";
+		elseif (stristr($nSource,"slashdotd")) 	$xml = "http://rss.slashdot.org/Slashdot/slashdotDevelopers";
+		elseif (stristr($nSource,"bbc"))			$xml = "http://feeds.bbci.co.uk/news/video_and_audio/news_front_page/rss.xml?edition=uk#";
+		elseif (stristr($nSource,"rt"))				$xml = "https://www.rt.com/rss/news/";
+		else													$xml = "https://www.rt.com/rss/news/";
+
+		$xmlDoc = new DOMDocument();
+		$xmlDoc->load($xml);
+		$x=$xmlDoc->getElementsByTagName('item');
+		$i = 1;
+
+		while($i <= $maxNewsStories) {
+			$item_title = 'NA';
+		  	$item_title = prepSQL($x->item($i)->getElementsByTagName('title')->item(0)->childNodes->item(0)->nodeValue);
+  			$item_link = prepSQL($x->item($i)->getElementsByTagName('link')->item(0)->childNodes->item(0)->nodeValue);
+  			$item_desc = prepSQL($x->item($i)->getElementsByTagName('description')->item(0)->childNodes->item(0)->nodeValue);
+  		
+  			if($item_title != 'NA') {
+  				$put = "INSERT INTO rss VALUES('','$tDate','$nSource','$item_title','$item_link','$item_desc','$nImg')";
+  				$mysqli->query($put);
+  				$i++;
+  			} else {
+  				break;
+  			}
+		}
+	}
+
+	function prepSQL($var){
+			$var = str_replace("'","`",$var);
+			$var = str_replace('"','\"',$var);
+			return $var;
+	}
+	
+	echo "<pre>";
+	$get = "SELECT * FROM rss WHERE tDate = '$tDate' and nSource = '$nSource' LIMIT 10 ";
+	$result = $mysqli->query($get);
+	while ($row = $result->fetch_row()){
+		echo "$row[1]```$row[2]```$row[3]```$row[4]```$row[5]```$row[6]```||| \n";
+	}
+	echo "</pre>"
+	
+?>
+.
