@@ -30,6 +30,7 @@
 		$i = 1;
 
 		while($i <= $maxNewsStories) {
+		
 			$item_title = 'NA';
 		  	$item_title = prepSQL($x->item($i)->getElementsByTagName('title')->item(0)->childNodes->item(0)->nodeValue);
   			$item_link = prepSQL($x->item($i)->getElementsByTagName('link')->item(0)->childNodes->item(0)->nodeValue);
@@ -55,6 +56,7 @@
 	$get = "SELECT * FROM rss WHERE tDate = '$tDate' and nSource = '$nSource' LIMIT 10 ";
 	$result = $mysqli->query($get);
 	while ($row = $result->fetch_row()){
+		//parse out the data row by row
 		echo "$row[1]```$row[2]```$row[3]```$row[4]```$row[5]```$row[6]```||| \n";
 	}
 	echo "</pre>";
